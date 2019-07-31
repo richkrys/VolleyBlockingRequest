@@ -121,7 +121,7 @@ public class VolleyBlockingRequestActivity extends AppCompatActivity {
             final RequestFuture<JSONObject> futureRequest = RequestFuture.newFuture();
             mQueue = CustomVolleyRequestQueue.getInstance(mContext.getApplicationContext())
                     .getRequestQueue();
-            String url = "http://api.openweathermap.org/data/2.5/weather?q=London,uk";
+            String url = "http://api.openweathermap.org/data/2.5/weather?q=London,uk&APPID=dc732fc743603e28f0b4fba8ab5ed347";
             final JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method
                     .GET, url,
                     new JSONObject(), futureRequest, futureRequest);
