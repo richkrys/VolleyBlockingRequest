@@ -24,6 +24,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -32,6 +33,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.RequestFuture;
+import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -54,6 +56,8 @@ public class VolleyBlockingRequestActivity extends AppCompatActivity {
 
         mTextView = (TextView) findViewById(R.id.textView);
         mButton = (Button) findViewById(R.id.button);
+
+        mQueue = Volley.newRequestQueue(this);
     }
 
     @Override
@@ -76,12 +80,16 @@ public class VolleyBlockingRequestActivity extends AppCompatActivity {
     }
 
     public void startParsingTask() {
+        Log.i("new thread: ", "NEW");
         Thread threadA = new Thread() {
             public void run() {
-                ThreadB threadB = new ThreadB(getApplicationContext());
+                ThreadB threadB = new ThreadB(getApplicationContext(), "http://api.openweathermap.org/data/2.5/weather?q=Detroit&APPID=dc732fc743603e28f0b4fba8ab5ed347");
                 JSONObject jsonObject = null;
                 try {
+                    Log.i("execute: ", "NEWWWW");
                     jsonObject = threadB.execute().get(10, TimeUnit.SECONDS);
+                    Log.i("Response is: ", jsonObject.toString());
+                    Log.i("done: ", "NEWWWW");
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (ExecutionException e) {
@@ -111,17 +119,17 @@ public class VolleyBlockingRequestActivity extends AppCompatActivity {
 
     private class ThreadB extends AsyncTask<Void, Void, JSONObject> {
         private Context mContext;
+        private String url;
 
-        public ThreadB(Context ctx) {
+        public ThreadB(Context ctx, String url) {
             mContext = ctx;
+            this.url = url;
         }
 
         @Override
         protected JSONObject doInBackground(Void... params) {
             final RequestFuture<JSONObject> futureRequest = RequestFuture.newFuture();
-            mQueue = CustomVolleyRequestQueue.getInstance(mContext.getApplicationContext())
-                    .getRequestQueue();
-            String url = "http://api.openweathermap.org/data/2.5/weather?q=London,uk&APPID=dc732fc743603e28f0b4fba8ab5ed347";
+//            String url = "http://api.openweathermap.org/data/2.5/weather?q=London,uk";
             final JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method
                     .GET, url,
                     new JSONObject(), futureRequest, futureRequest);
