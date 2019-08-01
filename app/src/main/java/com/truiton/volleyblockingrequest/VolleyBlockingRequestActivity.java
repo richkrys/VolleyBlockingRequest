@@ -45,25 +45,25 @@ import java.util.concurrent.TimeoutException;
 
 public class VolleyBlockingRequestActivity extends AppCompatActivity {
     public static final String REQUEST_TAG = "VolleyBlockingRequestActivity";
-    private TextView mTextView;
-    private Button mButton;
-    private RequestQueue mQueue;
+    private TextView textView;
+    private Button button;
+    private RequestQueue requestQueue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_volley_blocking_request);
 
-        mTextView = (TextView) findViewById(R.id.textView);
-        mButton = (Button) findViewById(R.id.button);
+        textView = (TextView) findViewById(R.id.textView);
+        button = (Button) findViewById(R.id.button);
 
-        mQueue = Volley.newRequestQueue(this);
+        requestQueue = Volley.newRequestQueue(this);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        mButton.setOnClickListener(new View.OnClickListener() {
+        button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startParsingTask();
@@ -74,8 +74,8 @@ public class VolleyBlockingRequestActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        if (mQueue != null) {
-            mQueue.cancelAll(REQUEST_TAG);
+        if (requestQueue != null) {
+            requestQueue.cancelAll(REQUEST_TAG);
         }
     }
 
@@ -86,10 +86,7 @@ public class VolleyBlockingRequestActivity extends AppCompatActivity {
                 ThreadB threadB = new ThreadB(getApplicationContext(), "http://api.openweathermap.org/data/2.5/weather?q=Detroit&APPID=dc732fc743603e28f0b4fba8ab5ed347");
                 JSONObject jsonObject = null;
                 try {
-                    Log.i("execute: ", "NEWWWW");
                     jsonObject = threadB.execute().get(10, TimeUnit.SECONDS);
-                    Log.i("Response is: ", jsonObject.toString());
-                    Log.i("done: ", "NEWWWW");
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (ExecutionException e) {
@@ -101,10 +98,10 @@ public class VolleyBlockingRequestActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        mTextView.setText("Response is: " + receivedJSONObject);
+                        textView.setText("Response is: " + receivedJSONObject);
                         if (receivedJSONObject != null) {
                             try {
-                                mTextView.setText(mTextView.getText() + "\n\n" +
+                                textView.setText(textView.getText() + "\n\n" +
                                         receivedJSONObject.getString("name"));
                             } catch (JSONException e) {
                                 e.printStackTrace();
@@ -129,12 +126,11 @@ public class VolleyBlockingRequestActivity extends AppCompatActivity {
         @Override
         protected JSONObject doInBackground(Void... params) {
             final RequestFuture<JSONObject> futureRequest = RequestFuture.newFuture();
-//            String url = "http://api.openweathermap.org/data/2.5/weather?q=London,uk";
             final JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method
                     .GET, url,
                     new JSONObject(), futureRequest, futureRequest);
             jsonRequest.setTag(REQUEST_TAG);
-            mQueue.add(jsonRequest);
+            requestQueue.add(jsonRequest);
             try {
                 return futureRequest.get(10, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
