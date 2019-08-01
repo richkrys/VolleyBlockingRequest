@@ -24,7 +24,6 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -80,7 +79,6 @@ public class VolleyBlockingRequestActivity extends AppCompatActivity {
     }
 
     public void startParsingTask() {
-        Log.i("new thread: ", "NEW");
         Thread threadA = new Thread() {
             public void run() {
                 ThreadB threadB = new ThreadB(getApplicationContext(), "http://api.openweathermap.org/data/2.5/weather?q=Detroit&APPID=dc732fc743603e28f0b4fba8ab5ed347");
