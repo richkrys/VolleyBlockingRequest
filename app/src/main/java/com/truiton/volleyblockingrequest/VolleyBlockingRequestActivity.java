@@ -20,30 +20,23 @@
 
 package com.truiton.volleyblockingrequest;
 
-import android.content.Context;
-import android.os.AsyncTask;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.Volley;
 
-import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 
 public class VolleyBlockingRequestActivity extends AppCompatActivity {
     public static final String REQUEST_TAG = "VolleyBlockingRequestActivity";
+    public static final int SUB_ACTIVITY_DB_REQUEST = 10;
+
     private TextView textView;
     private Button button;
     private RequestQueue requestQueue;
@@ -52,7 +45,6 @@ public class VolleyBlockingRequestActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_volley_blocking_request);
-
         textView = (TextView) findViewById(R.id.textView);
         button = (Button) findViewById(R.id.button);
 
@@ -65,7 +57,7 @@ public class VolleyBlockingRequestActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startParsingTask();
+                makeRequest();
             }
         });
     }
@@ -78,67 +70,29 @@ public class VolleyBlockingRequestActivity extends AppCompatActivity {
         }
     }
 
-    public void startParsingTask() {
-        Thread threadA = new Thread() {
-            public void run() {
-                ThreadB threadB = new ThreadB(getApplicationContext(), "http://api.openweathermap.org/data/2.5/weather?q=Detroit&APPID=dc732fc743603e28f0b4fba8ab5ed347");
-                JSONObject jsonObject = null;
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == SUB_ACTIVITY_DB_REQUEST && resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+            if (extras != null) {
                 try {
-                    jsonObject = threadB.execute().get(10, TimeUnit.SECONDS);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (TimeoutException e) {
+                    JSONObject json = new JSONObject(extras.getString("json_resp"));
+                    Log.i("result: ", json.toString());
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
-                final JSONObject receivedJSONObject = jsonObject;
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        textView.setText("Response is: " + receivedJSONObject);
-                        if (receivedJSONObject != null) {
-                            try {
-                                textView.setText(textView.getText() + "\n\n" +
-                                        receivedJSONObject.getString("name"));
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                });
             }
-        };
-        threadA.start();
+        }
     }
 
-    private class ThreadB extends AsyncTask<Void, Void, JSONObject> {
-        private Context mContext;
-        private String url;
-
-        public ThreadB(Context ctx, String url) {
-            mContext = ctx;
-            this.url = url;
-        }
-
-        @Override
-        protected JSONObject doInBackground(Void... params) {
-            final RequestFuture<JSONObject> futureRequest = RequestFuture.newFuture();
-            final JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method
-                    .GET, url,
-                    new JSONObject(), futureRequest, futureRequest);
-            jsonRequest.setTag(REQUEST_TAG);
-            requestQueue.add(jsonRequest);
-            try {
-                return futureRequest.get(10, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (TimeoutException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
+    private void makeRequest() {
+        Log.i("status: ", "make reqeusts");
+        Intent i = new Intent(this, SyncDbReqActivity.class);
+        i.putExtra("queryStr", "http://api.openweathermap.org/data/2.5/weather?q=Detroit&APPID=dc732fc743603e28f0b4fba8ab5ed347");
+        startActivityForResult(i, SUB_ACTIVITY_DB_REQUEST);
+        i.putExtra("queryStr", "http://api.openweathermap.org/data/2.5/weather?q=London&APPID=dc732fc743603e28f0b4fba8ab5ed347");
+        startActivityForResult(i, SUB_ACTIVITY_DB_REQUEST);
+        i.putExtra("queryStr", "http://api.openweathermap.org/data/2.5/weather?q=Paris&APPID=dc732fc743603e28f0b4fba8ab5ed347");
+        startActivityForResult(i, SUB_ACTIVITY_DB_REQUEST);
     }
 }
